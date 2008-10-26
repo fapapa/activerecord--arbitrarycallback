@@ -1,13 +1,37 @@
 ArbitraryCallback
 =================
 
-Introduction goes here.
+Have you ever needed a method to be called before or after another is called, but didn't have direct access to the method because it was magically created by ActiveRecord? This plugin essentially lets you add code to be run before, after or around a given method. Pretty nifty.
 
 
 Example
 =======
 
-Example goes here.
+This plugin was extracted from a real-world catering application that is being built. Here's the situation that prompted the need for this plugin; Imagine the following ActiveRecord model:
+
+class MenuItem < ActiveRecord::Base
+  belongs_to :dish
+end
+
+In this application, a dish is used almost like a template or default. A dish has a name, a price, etc. A menu item also has these attributes, and they should match those of the dish it references. The reason for doing this is so that, when a menu item is added to a menu for a customer, the caterer can change the name, price, etc. to customize the menu item for that menu without changing the dish (and automatically all the other menu items that reference it). We could do this with the supplied before_save hook, but then the attributes won't be "synched" until saving. It would be nice to write a method that does the synching and specify that it should be run whenever we set the dish (i.e.: we call the dish= method). Here's how we do that with this plugin:
+
+class MenuItem < ActiveRecord::Base
+  belongs_to :dish
+  
+  def sync_to_dish(dish)
+    self.name = dish.name
+    self.price = dish.price
+    # ...
+  end
+  append_method :dish=, :with_method => :sync_to_dish, :with_args => true
+  
+end
+
+Now, whenever MenuItem#dish= is called, #sync_to_dish is called right after it, passing in the same argument(s) that were passed to dish=. #prepend_method and #wrap_method are also available
+
+In the future, dynamic methods could be added through method_missing that would allow something like:
+
+call_sync_to_dish_after_dish_equals(:with_args => true)
 
 
-Copyright (c) 2008 [name of plugin creator], released under the MIT license
+Copyright (c) 2008 Leone Image & Design, released under the MIT license
