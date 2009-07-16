@@ -52,11 +52,6 @@ module LeoneImage
           _arbitrary_code(*args)
         end
       end
-      
-      private   #---------------------------------------------------------------
-      def normalize_method_name(sym)
-        sym.to_s.gsub(/=/, "_equals").to_sym
-      end
     end
   end
 end
